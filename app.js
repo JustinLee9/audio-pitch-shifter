@@ -15,20 +15,59 @@ const canvasCtx = canvas.getContext("2d");
 canvas.width = 1000;
 canvas.height = 250;
 
+let originalFileName = null;
 let audioBuffer = null;
 let source = null;
 let startTime = 0;
 let pausedAt = 0;
 let isPlaying = false;
 let currentSpeed = 1.25;
+const downloadButton = document.getElementById("downloadButton");
 
+downloadButton.addEventListener("click", async () => {
+    if (!audioBuffer) return;
+
+    const offlineCtx = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length / currentSpeed, audioBuffer.sampleRate);
+    const offlineSource = offlineCtx.createBufferSource();
+    offlineSource.buffer = audioBuffer;
+    offlineSource.playbackRate.value = currentSpeed;
+
+    const offlineGain = offlineCtx.createGain();
+    offlineGain.gain.value = gainNode.gain.value;
+
+    offlineSource.connect(offlineGain);
+    offlineGain.connect(offlineCtx.destination);
+
+    offlineSource.start(0);
+    const renderedBuffer = await offlineCtx.startRendering();
+    const wavData = audioBufferToWav(renderedBuffer);
+    const blob = new Blob([wavData], { type: "audio/wav" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = originalFileName + " " + currentSpeed + "x.wav";
+    a.click();
+    URL.revokeObjectURL(url);
+});
+
+// Buffer
 fileInput.addEventListener("change", async (e) => {
     const file = e.target.files[0];
+    originalFileName = file.name;
     const arrayBuffer = await file.arrayBuffer();
     audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+    if (source && isPlaying) {
+        source.stop();
+    }
+    startTime = 0;
+    pausedAt = 0;
+    isPlaying = false;
+
     console.log("Audio loaded!", audioBuffer);
 });
 
+// Playbutton logic
 playButton.addEventListener("click", () => {
     if (!audioBuffer) return;
 
@@ -41,13 +80,27 @@ playButton.addEventListener("click", () => {
         source.buffer = audioBuffer;
         source.playbackRate.value = currentSpeed;
         source.connect(analyser);
+
+        source.onended = () => {
+            const playedFor = (audioContext.currentTime - startTime) * currentSpeed + pausedAt;
+
+            if (playedFor < audioBuffer.duration - 0.01) {
+                // Stopped early (pause or new file)
+                return;
+            }
+
+            // Only runs if audio reached the end
+            console.log("Song ended naturally");
+            startTime = 0;
+            pausedAt = 0;
+            isPlaying = false;
+        };
         source.start(0, pausedAt);
         startTime = audioContext.currentTime;
         isPlaying = true;
     }
 });
 
-// Volume and speed controls
 const volumeControl = document.querySelector("#volume");
 const speedControl = document.querySelector("#speed");
 const volumeValue = document.querySelector("#volumeValue");
@@ -66,6 +119,7 @@ speedControl.addEventListener("input", () => {
     speedValue.textContent = parseFloat(speedControl.value).toFixed(2) + "x";
 });
 
+// Canvas
 function draw() {
     requestAnimationFrame(draw);
 

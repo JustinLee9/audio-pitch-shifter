@@ -3,18 +3,22 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Audio Pitch Shifter
-        </title>
+        <title>Audio Pitch Shifter</title>
         <link rel="stylesheet" href="index.css" />
     </head>
     <body>
         <h1>Audio Pitch Shifter</h1>
         <canvas></canvas>
+        <div>
+            <ul id="playlistContainer"></ul>
+        </div>
 
         <div class="controls">
             <input type="file" id="audioFile" accept="audio/*" />
 
             <button id="playButton">Play/Pause</button>
+            <button id="downloadButton">Download</button>
+            <button id="addButton">Add Song</button>
 
             <div class="slider-group">
                 <div class="slider-header">
@@ -33,6 +37,8 @@
             </div>
         </div>
 
+        <script src="https://unpkg.com/audiobuffer-to-wav@1.0.0/index.js"></script>
         <script src="app.js"></script>
+        <script src="playlist.js"></script>
     </body>
 </html>
