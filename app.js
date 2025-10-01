@@ -2,9 +2,10 @@ const audioContext = new AudioContext();
 const fileInput = document.getElementById("audioFile");
 const playButton = document.getElementById("playButton");
 const gainNode = audioContext.createGain();
+gainNode.gain.value = 0.25;
 const analyser = audioContext.createAnalyser();
 
-analyser.fftSize = 2048; // A power of 2, e.g., 32, 64, 128...2048
+analyser.fftSize = 2048;
 analyser.connect(gainNode);
 gainNode.connect(audioContext.destination);
 const bufferLength = analyser.frequencyBinCount;
@@ -44,19 +45,25 @@ playButton.addEventListener("click", () => {
         startTime = audioContext.currentTime;
         isPlaying = true;
     }
+});
 
-    const volumeControl = document.querySelector("#volume");
-    volumeControl.addEventListener("input", () => {
-        gainNode.gain.value = volumeControl.value;
-    });
+// Volume and speed controls
+const volumeControl = document.querySelector("#volume");
+const speedControl = document.querySelector("#speed");
+const volumeValue = document.querySelector("#volumeValue");
+const speedValue = document.querySelector("#speedValue");
 
-    const speedControl = document.querySelector("#speed");
-    speedControl.addEventListener("input", () => {
-        currentSpeed = speedControl.value;
-        if (source && isPlaying) {
-            source.playbackRate.value = currentSpeed;
-        }
-    });
+volumeControl.addEventListener("input", () => {
+    gainNode.gain.value = volumeControl.value;
+    volumeValue.textContent = parseFloat(volumeControl.value).toFixed(2);
+});
+
+speedControl.addEventListener("input", () => {
+    currentSpeed = speedControl.value;
+    if (source && isPlaying) {
+        source.playbackRate.value = currentSpeed;
+    }
+    speedValue.textContent = parseFloat(speedControl.value).toFixed(2) + "x";
 });
 
 function draw() {

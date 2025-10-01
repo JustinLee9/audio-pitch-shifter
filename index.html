@@ -1,21 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nightcore Generator</title>
-</head>
-<body>
-    <h1>Nightcore Music</h1>
-    <input type="file" id="audioFile" accept="audio/*">
-    <audio src="audioFile"></audio>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Audio Pitch Shifter
+        </title>
+        <link rel="stylesheet" href="index.css" />
+    </head>
+    <body>
+        <h1>Audio Pitch Shifter</h1>
+        <canvas></canvas>
 
-    <button id="playButton">Play/Pause</button>
-    <input type="range" id="volume" min="0" max="2" value="1.5" step="0.01" />
-    <input type="pbr" id="speed" min ="0.5" max="2" value="1.25" step="0.01">
+        <div class="controls">
+            <input type="file" id="audioFile" accept="audio/*" />
 
-    <canvas></canvas>
+            <button id="playButton">Play/Pause</button>
 
-    <script src="app.js"></script>
-</body>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label for="volume">Volume</label>
+                    <span class="slider-value" id="volumeValue">0.25</span>
+                </div>
+                <input type="range" id="volume" min="0" max="2" value="0.25" step="0.01" />
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label for="speed">Speed</label>
+                    <span class="slider-value" id="speedValue">1.25x</span>
+                </div>
+                <input type="range" id="speed" min="0.5" max="2" value="1.25" step="0.01" />
+            </div>
+        </div>
+
+        <script src="app.js"></script>
+    </body>
 </html>
