@@ -150,7 +150,7 @@ canvas {
 }
 
 /* ===== Buttons ===== */
-button {
+.controls button {
   -webkit-appearance: none;
   appearance: none;
   cursor: pointer;
@@ -166,18 +166,18 @@ button {
   transition: transform var(--t-fast) ease, box-shadow var(--t-fast) ease, background var(--t-fast) ease;
 }
 
-button:hover {
+.controls button:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 24px rgba(92, 141, 246, 0.3), 0 0 0 1px rgba(255,255,255,0.05) inset;
   background: linear-gradient(180deg, var(--brand-600), var(--brand-700));
 }
 
-button:active {
+.controls button:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(92,141,246,0.22);
 }
 
-button:focus-visible {
+.controls button:focus-visible {
   outline: none;
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 28%, transparent),
               0 8px 18px rgba(92, 141, 246, 0.25);
@@ -343,4 +343,12 @@ img, canvas, video, input, button {
 ::selection {
   background: color-mix(in oklab, var(--brand) 35%, transparent);
   color: var(--text);
+}
+
+.delete-btn {
+    /* Your custom styles */
+    background: red;
+    color: white;
+    font-size: 12px;
+    /* whatever you want */
 }
