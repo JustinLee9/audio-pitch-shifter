@@ -2,6 +2,8 @@
 
 A web-based audio player with speed control, volume adjustment, playlist management, and real-time waveform visualization.
 
+🎵 **[Live Demo](https://audio-pitch-shifter.vercel.app)**
+
 ## Features
 
 - **Audio Playback**: Play/pause audio files with support for various formats
