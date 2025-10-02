@@ -1,20 +1,31 @@
+// Audio setup
 const audioContext = new AudioContext();
-const fileInput = document.getElementById("audioFile");
-const playButton = document.getElementById("playButton");
 const gainNode = audioContext.createGain();
 gainNode.gain.value = 0.25;
 const analyser = audioContext.createAnalyser();
-
 analyser.fftSize = 2048;
 analyser.connect(gainNode);
 gainNode.connect(audioContext.destination);
+
 const bufferLength = analyser.frequencyBinCount;
 const dataArray = new Uint8Array(bufferLength);
+
+// Canvas setup
 const canvas = document.querySelector("canvas");
 const canvasCtx = canvas.getContext("2d");
 canvas.width = 1000;
 canvas.height = 250;
 
+// DOM elements
+const fileInput = document.getElementById("audioFile");
+const playBtn = document.getElementById("playBtn");
+const downloadBtn = document.getElementById("downloadBtn");
+const volumeControl = document.querySelector("#volume");
+const speedControl = document.querySelector("#speed");
+const volumeValue = document.querySelector("#volumeValue");
+const speedValue = document.querySelector("#speedValue");
+
+// State
 let originalFileName = null;
 let audioBuffer = null;
 let source = null;
@@ -22,37 +33,12 @@ let startTime = 0;
 let pausedAt = 0;
 let isPlaying = false;
 let currentSpeed = 1.25;
-const downloadButton = document.getElementById("downloadButton");
 
-downloadButton.addEventListener("click", async () => {
-    if (!audioBuffer) return;
-
-    const offlineCtx = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length / currentSpeed, audioBuffer.sampleRate);
-    const offlineSource = offlineCtx.createBufferSource();
-    offlineSource.buffer = audioBuffer;
-    offlineSource.playbackRate.value = currentSpeed;
-
-    const offlineGain = offlineCtx.createGain();
-    offlineGain.gain.value = gainNode.gain.value;
-
-    offlineSource.connect(offlineGain);
-    offlineGain.connect(offlineCtx.destination);
-
-    offlineSource.start(0);
-    const renderedBuffer = await offlineCtx.startRendering();
-    const wavData = audioBufferToWav(renderedBuffer);
-    const blob = new Blob([wavData], { type: "audio/wav" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = originalFileName + " " + currentSpeed + "x.wav";
-    a.click();
-    URL.revokeObjectURL(url);
-});
-
-// Buffer
+// File input
 fileInput.addEventListener("change", async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+    audioBuffer = null;
     originalFileName = file.name;
     const arrayBuffer = await file.arrayBuffer();
     audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -67,8 +53,8 @@ fileInput.addEventListener("change", async (e) => {
     console.log("Audio loaded!", audioBuffer);
 });
 
-// Playbutton logic
-playButton.addEventListener("click", () => {
+// Play/Pause
+playBtn.addEventListener("click", () => {
     if (!audioBuffer) return;
 
     if (isPlaying) {
@@ -101,16 +87,40 @@ playButton.addEventListener("click", () => {
     }
 });
 
-const volumeControl = document.querySelector("#volume");
-const speedControl = document.querySelector("#speed");
-const volumeValue = document.querySelector("#volumeValue");
-const speedValue = document.querySelector("#speedValue");
+// Download
+downloadBtn.addEventListener("click", async () => {
+    if (!audioBuffer) return;
 
+    const offlineCtx = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length / currentSpeed, audioBuffer.sampleRate);
+    const offlineSource = offlineCtx.createBufferSource();
+    offlineSource.buffer = audioBuffer;
+    offlineSource.playbackRate.value = currentSpeed;
+
+    const offlineGain = offlineCtx.createGain();
+    offlineGain.gain.value = gainNode.gain.value;
+
+    offlineSource.connect(offlineGain);
+    offlineGain.connect(offlineCtx.destination);
+
+    offlineSource.start(0);
+    const renderedBuffer = await offlineCtx.startRendering();
+    const wavData = audioBufferToWav(renderedBuffer);
+    const blob = new Blob([wavData], { type: "audio/wav" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = originalFileName + " " + currentSpeed + "x.wav";
+    a.click();
+    URL.revokeObjectURL(url);
+});
+
+// Volume
 volumeControl.addEventListener("input", () => {
     gainNode.gain.value = volumeControl.value;
     volumeValue.textContent = parseFloat(volumeControl.value).toFixed(2);
 });
 
+// Speed
 speedControl.addEventListener("input", () => {
     currentSpeed = speedControl.value;
     if (source && isPlaying) {
@@ -119,7 +129,7 @@ speedControl.addEventListener("input", () => {
     speedValue.textContent = parseFloat(speedControl.value).toFixed(2) + "x";
 });
 
-// Canvas
+// Visualizer
 function draw() {
     requestAnimationFrame(draw);
 

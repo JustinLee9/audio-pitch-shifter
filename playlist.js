@@ -1,4 +1,10 @@
-const addButton = document.getElementById("addButton");
+// DOM elements
+const addBtn = document.getElementById("addBtn");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+// Track currently playing song node
+let currentNode = null;
 
 class Node {
     constructor(value) {
@@ -7,99 +13,139 @@ class Node {
     }
 }
 
+// Store song data
 class Song {
     constructor(name, buffer) {
-        (this.name = name), (this.buffer = buffer);
+        this.name = name;
+        this.buffer = buffer;
     }
 }
 
+// Singly linked list for playlist
 class Playlist {
     constructor() {
         this.head = null;
     }
 
+    // Add song to playlist
     append(name, buffer) {
         let newSong = new Song(name, buffer);
-        let newnode = new Node(newSong);
+        let newNode = new Node(newSong);
         if (!this.head) {
-            this.head = newnode;
+            this.head = newNode;
             return;
         }
         let current = this.head;
         while (current.next) {
             current = current.next;
         }
-        current.next = newnode;
+        current.next = newNode;
     }
 
-    delete(song) {
-        if (this.head.value.name === song.name) {
-            this.head = this.head.next
-        } else {
-            let prev = null
-            let current = this.head;
-            while (current) {
-                if (current.value.name === song.name) {
-                    prev.next = current.next;
-                    return;
-                } else {
-                    prev = current;
-                    current = current.next
-                }
-            }
-        }
-    }
+    // Get the node before the given node
+    getPrevious(node) {
+        if (this.head === node) return null;
 
-    printList() {
         let current = this.head;
-        let result = "";
-        while (current) {
-            result += current.value.buffer + "\n";
+        while (current && current.next !== node) {
             current = current.next;
         }
-        console.log(result + "null");
+        return current;
+    }
+
+    // Get the node after the given node
+    getNext(node) {
+        return node?.next || null;
+    }
+
+    // Delete a song from the playlist
+    delete(song) {
+        if (!this.head) return;
+
+        if (this.head.value.name === song.name) {
+            this.head = this.head.next;
+            return;
+        }
+
+        let current = this.head;
+        while (current.next) {
+            if (current.next.value.name === song.name) {
+                current.next = current.next.next;
+                return;
+            }
+            current = current.next;
+        }
     }
 }
 
+// Initialize playlist
 const playlist = new Playlist();
 
-addButton.addEventListener("click", () => {
-    if (!audioBuffer) return;
+// Switch to a different song and start playing
+function switchToSong(node) {
+    if (!node) return;
 
+    if (source) {
+        source.stop();
+        source = null;
+    }
+
+    currentNode = node;
+    audioBuffer = node.value.buffer;
+    originalFileName = node.value.name;
+    startTime = 0;
+    pausedAt = 0;
+    isPlaying = false;
+    playBtn.click();
+}
+
+// Add current audio to playlist
+addBtn.addEventListener("click", () => {
+    if (!audioBuffer) return;
     playlist.append(originalFileName, audioBuffer);
-    console.log("Added", originalFileName, audioBuffer);
     displayPlaylist();
 });
 
-displayPlaylist = () => {
-    let container = document.getElementById("playlistContainer");
+// Display all songs in the playlist
+function displayPlaylist() {
+    const container = document.getElementById("playlistContainer");
     container.innerHTML = "";
+
     let current = playlist.head;
     while (current) {
-        let song = current.value;
-        let listItem = document.createElement("li");
-        listItem.textContent = current.value.name;
-        
-        let deleteBtn = document.createElement("button");
-        deleteBtn.classList.add('delete-btn');
+        const song = current.value;
+        const node = current;
+        const listItem = document.createElement("li");
+        listItem.textContent = song.name;
+
+        // Create delete button for each song
+        const deleteBtn = document.createElement("button");
+        deleteBtn.classList.add("delete-btn");
         deleteBtn.textContent = "X";
         deleteBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             playlist.delete(song);
             displayPlaylist();
         });
-        
-        listItem.appendChild(deleteBtn);
 
-        listItem.addEventListener("click", () => {
-            audioBuffer = song.buffer;
-            originalFileName = song.name;
-            startTime = 0;
-            pausedAt = 0;
-            playButton.click();
-        });
-        
+        listItem.appendChild(deleteBtn);
+        listItem.addEventListener("click", () => switchToSong(node));
         container.appendChild(listItem);
+
         current = current.next;
     }
-};
+}
+
+// Go to previous song
+prevBtn.addEventListener("click", () => {
+    if (currentNode) {
+        switchToSong(playlist.getPrevious(currentNode));
+    }
+});
+
+// Go to next song
+nextBtn.addEventListener("click", () => {
+    if (currentNode) {
+        switchToSong(playlist.getNext(currentNode));
+    }
+});
